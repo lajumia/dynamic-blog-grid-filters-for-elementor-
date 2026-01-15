@@ -7,7 +7,7 @@
     <aside class="sidebar" id="sidebar">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
             <h3 style="margin:0">Filter</h3>
-            <button id="clearFilters" style="background:none;border:none;color:#2563eb;font-size:13px;cursor:pointer">Clear all</button>
+            <button id="clearFilters" style="background:none;border:none;color:#2563eb;font-size:13px;cursor:pointer;padding: 16px 8px;">Clear all</button>
         </div>
 
         <?php
@@ -130,24 +130,6 @@
                     </p>
 
                     <p>
-                    <!-- Category -->
-                        <?php
-                        // $categories = get_the_category();
-                        // if ( ! empty( $categories ) ) :
-                        ?>
-                            <!-- <div class="post-categories">
-                                <?php //foreach ( $categories as $category ) : ?>
-                                    <a 
-                                        href="<?php //echo esc_url( get_category_link( $category->term_id ) ); ?>" 
-                                        class="post-category"
-                                    >
-                                        <?php //echo "Category : " . esc_html( $category->name ); ?>
-                                    </a>
-                                <?php //endforeach; ?>
-                            </div> -->
-                        <?php //endif; ?>
-                    </p>
-
                     <a href="<?php the_permalink(); ?>" class="read-more">
                         <?php esc_html_e( 'Read More →', 'dbgfe' ); ?>
                     </a>
@@ -251,17 +233,18 @@ function updateFilterCount(){
 document.getElementById('clearFilters').addEventListener('click',()=>{
   checkboxes.forEach(cb=>cb.checked=false);
   updateFilterCount();
+  dbgfeLoadPosts(1);
 });
 
 document.addEventListener('click', function(e) {
     const link = e.target.closest('.pagination a');
     if (!link || link.classList.contains('disabled')) return;
 
-    e.preventDefault(); // prevent full page reload
+    e.preventDefault();
 
     const page = link.dataset.page;
 
-    dbgfeLoadPosts(page); // call your AJAX function
+    dbgfeLoadPosts(page); 
 
     // Update browser URL without reload
     history.pushState(null, '', link.href);
@@ -271,7 +254,7 @@ document.querySelectorAll(
     '.dbgfe-category-filter, .dbgfe-tag-filter'
 ).forEach(input => {
     input.addEventListener('change', () => {
-        dbgfeLoadPosts(1); // reset to page 1 on filter change
+        dbgfeLoadPosts(1);
     });
 });
 
@@ -287,13 +270,11 @@ function dbgfeLoadPosts(page = 1) {
         document.querySelectorAll('.dbgfe-category-filter:checked')
     ).map(el => el.value);
 
-    console.log(categories);
-
     // Collect selected tags
     const tags = Array.from(
         document.querySelectorAll('.dbgfe-tag-filter:checked')
     ).map(el => el.value);
-    console.log(tags);
+    
 
     const params = new URLSearchParams({
         action: 'dbgfe_load_posts',
@@ -313,6 +294,7 @@ function dbgfeLoadPosts(page = 1) {
     .then(data => {
 
         grid.innerHTML = data.posts;
+       
 
         const paginationWrap = document.getElementById('dbgfe-pagination');
         if (paginationWrap) {

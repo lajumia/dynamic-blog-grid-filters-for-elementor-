@@ -60,7 +60,7 @@
 
 /* FLOATING MOBILE FILTER BUTTON */
 .mobile-filter-btn{
-    display:none; /* hidden by default (desktop) */
+    display: none !important; /* hidden by default (desktop) */
     position:fixed;
     left:12px;
     top:50%;
@@ -95,7 +95,7 @@
 }
 
 @media(max-width:900px){
-.mobile-filter-btn{display:block}
+.mobile-filter-btn{display: block !important;}
 .blog-wrapper{grid-template-columns:1fr;margin-top:0}
 .blog-grid{grid-template-columns:repeat(2,1fr)}
 .sidebar{position:fixed;top:0;left:-100%;height:100%;width:280px;z-index:999;transition:.3s ease;overflow-y:auto}

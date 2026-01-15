@@ -84,7 +84,7 @@ function dbgfe_register_assets() {
     );
     wp_localize_script(
         'dbgfe-script',
-        'dbgfe_ajax', // this is the JS object
+        'dbgfe_ajax',
         [
             'ajax_url' => admin_url( 'admin-ajax.php' )
         ]
@@ -105,8 +105,9 @@ add_action( 'wp_ajax_nopriv_dbgfe_load_posts', 'dbgfe_load_posts' );
 
 function dbgfe_load_posts() {
 
-    $paged = isset($_POST['page']) ? absint($_POST['page']) : 1;
+    $paged = isset( $_POST['page'] ) ? absint( $_POST['page'] ) : 1;
 
+    // Base query args
     $args = [
         'post_type'      => 'post',
         'posts_per_page' => 8,
@@ -114,51 +115,48 @@ function dbgfe_load_posts() {
         'paged'          => $paged,
     ];
 
-    // Categories
-    if ( ! empty($_POST['categories']) ) {
+    // Categories filter (multiple)
+    if ( ! empty( $_POST['categories'] ) ) {
         $args['category__in'] = array_map(
             'absint',
-            explode(',', $_POST['categories'])
+            explode( ',', sanitize_text_field( $_POST['categories'] ) )
         );
     }
 
-    // Tags
-    if ( ! empty($_POST['tags']) ) {
+    // Tags filter (multiple)
+    if ( ! empty( $_POST['tags'] ) ) {
         $args['tag__in'] = array_map(
             'absint',
-            explode(',', $_POST['tags'])
+            explode( ',', sanitize_text_field( $_POST['tags'] ) )
         );
     }
 
     $query = new WP_Query( $args );
 
-    // ------------------
-    // POSTS HTML
-    // ------------------
+    /* --------------------
+     * POSTS HTML
+     * -------------------- */
     ob_start();
 
     if ( $query->have_posts() ) :
         while ( $query->have_posts() ) : $query->the_post(); ?>
             <div class="blog-card">
-            
+
                 <a href="<?php the_permalink(); ?>">
                     <?php if ( has_post_thumbnail() ) : ?>
                         <?php the_post_thumbnail( 'medium', [
-                                'alt'   => esc_attr( get_the_title() ),
-                                'style' => 'width:100%; height:100px; object-fit:cover;',
-                            ] ); ?>
+                            'alt'   => esc_attr( get_the_title() ),
+                            'style' => 'width:100%; height:100px; object-fit:cover;',
+                        ] ); ?>
                     <?php else : ?>
-                        <img src="<?php echo DBGFE_URL . '/assets/img/image-not-found.jpg' ?>" alt="Image not found!">
+                        <img src="<?php echo esc_url( DBGFE_URL . 'assets/img/image-not-found.jpg' ); ?>" alt="<?php esc_attr_e( 'Image not found', 'dbgfe' ); ?>">
                     <?php endif; ?>
                 </a>
 
                 <div class="blog-content">
                     <h3><?php the_title(); ?></h3>
 
-                    <p>
-                        <?php echo wp_trim_words( get_the_excerpt(), 3 ); ?>
-                    </p>
-                    
+                    <p><?php echo wp_trim_words( get_the_excerpt(), 3 ); ?></p>
 
                     <a href="<?php the_permalink(); ?>" class="read-more">
                         <?php esc_html_e( 'Read More →', 'dbgfe' ); ?>
@@ -168,30 +166,43 @@ function dbgfe_load_posts() {
             </div>
         <?php endwhile;
     else :
-        echo '<p>No posts found.</p>';
+        echo '<p>' . esc_html__( 'No posts found.', 'dbgfe' ) . '</p>';
     endif;
 
     wp_reset_postdata();
 
     $posts_html = ob_get_clean();
 
-    // ------------------
-    // PAGINATION HTML
-    // ------------------
+    /* --------------------
+     * PAGINATION HTML
+     * -------------------- */
+
+    // Get real frontend URL from JS
+    $current_url = ! empty( $_POST['current_url'] )
+        ? esc_url_raw( $_POST['current_url'] )
+        : home_url( '/' );
+
+    // Remove existing /page/x/ from URL
+    $base_url = trailingslashit(
+        preg_replace( '#/page/\d+/?#', '', $current_url )
+    );
+
     ob_start();
 
     if ( $query->max_num_pages > 1 ) : ?>
         <div class="pagination" id="dbgfe-pagination">
 
+            <!-- Prev -->
             <a
-                href="<?php echo esc_url( get_pagenum_link( max(1, $paged - 1) ) ); ?>"
+                href="<?php echo esc_url( $paged > 1 ? trailingslashit( $base_url . 'page/' . ( $paged - 1 ) ) : '#' ); ?>"
                 class="page-prev <?php echo ( $paged == 1 ) ? 'disabled' : ''; ?>"
-                data-page="<?php echo max(1, $paged - 1); ?>"
+                data-page="<?php echo max( 1, $paged - 1 ); ?>"
             >«</a>
 
+            <!-- Numbers -->
             <?php for ( $i = 1; $i <= $query->max_num_pages; $i++ ) : ?>
                 <a
-                    href="<?php echo esc_url( get_pagenum_link( $i ) ); ?>"
+                    href="<?php echo esc_url( trailingslashit( $base_url . 'page/' . $i ) ); ?>"
                     class="page-number <?php echo ( $i == $paged ) ? 'active' : ''; ?>"
                     data-page="<?php echo esc_attr( $i ); ?>"
                 >
@@ -199,10 +210,11 @@ function dbgfe_load_posts() {
                 </a>
             <?php endfor; ?>
 
+            <!-- Next -->
             <a
-                href="<?php echo esc_url( get_pagenum_link( min($query->max_num_pages, $paged + 1) ) ); ?>"
+                href="<?php echo esc_url( $paged < $query->max_num_pages ? trailingslashit( $base_url . 'page/' . ( $paged + 1 ) ) : '#' ); ?>"
                 class="page-next <?php echo ( $paged == $query->max_num_pages ) ? 'disabled' : ''; ?>"
-                data-page="<?php echo min($query->max_num_pages, $paged + 1); ?>"
+                data-page="<?php echo min( $query->max_num_pages, $paged + 1 ); ?>"
             >»</a>
 
         </div>
@@ -210,11 +222,12 @@ function dbgfe_load_posts() {
 
     $pagination_html = ob_get_clean();
 
-    wp_send_json([
+    wp_send_json( [
         'posts'      => $posts_html,
         'pagination' => $pagination_html,
-    ]);
+    ] );
 }
+
 
 
 
