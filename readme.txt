@@ -1,5 +1,5 @@
 === Dynamic Blog Grid & Filters for Elementor ===
-Contributors: yourname
+Contributors: Md Laju Miah
 Tags: elementor, blog grid, post grid, filters, ajax filter, category filter, tag filter
 Requires at least: 6.0
 Tested up to: 6.5

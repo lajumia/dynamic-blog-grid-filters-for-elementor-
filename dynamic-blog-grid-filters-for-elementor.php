@@ -106,11 +106,12 @@ add_action( 'wp_ajax_nopriv_dbgfe_load_posts', 'dbgfe_load_posts' );
 function dbgfe_load_posts() {
 
     $paged = isset( $_POST['page'] ) ? absint( $_POST['page'] ) : 1;
+    $posts_per_page = isset( $_POST['posts_per_page'] ) ? absint( $_POST['posts_per_page'] ) : 8;
 
     // Base query args
     $args = [
         'post_type'      => 'post',
-        'posts_per_page' => 8,
+        'posts_per_page' => $posts_per_page,
         'post_status'    => 'publish',
         'paged'          => $paged,
     ];
@@ -193,11 +194,26 @@ function dbgfe_load_posts() {
         <div class="pagination" id="dbgfe-pagination">
 
             <!-- Prev -->
-            <a
-                href="<?php echo esc_url( $paged > 1 ? trailingslashit( $base_url . 'page/' . ( $paged - 1 ) ) : '#' ); ?>"
-                class="page-prev <?php echo ( $paged == 1 ) ? 'disabled' : ''; ?>"
-                data-page="<?php echo max( 1, $paged - 1 ); ?>"
-            >«</a>
+            <?php
+        if ( $paged <= 1 ) {
+            $prev_href = '#';
+        } elseif ( $paged === 2 ) {
+            // page 2 → prev should go to base archive
+            $prev_href = $base_url;
+        } else {
+            // page 3+ → normal page/x
+            $prev_href = trailingslashit( $base_url . 'page/' . ( $paged - 1 ) );
+        }
+        ?>
+
+        <a
+            href="<?php echo esc_url( $prev_href ); ?>"
+            class="page-prev <?php echo ( $paged <= 1 ) ? 'disabled' : ''; ?>"
+            style="display: <?php echo ( $paged == 1 ) ? 'none' : 'block'; ?>"
+            data-page="<?php echo max( 1, $paged - 1 ); ?>"
+            data-posts-per-page="<?php echo esc_attr( $posts_per_page ); ?>"
+        >«</a>
+
 
             <!-- Numbers -->
             <?php for ( $i = 1; $i <= $query->max_num_pages; $i++ ) : ?>
@@ -205,6 +221,7 @@ function dbgfe_load_posts() {
                     href="<?php echo esc_url( trailingslashit( $base_url . 'page/' . $i ) ); ?>"
                     class="page-number <?php echo ( $i == $paged ) ? 'active' : ''; ?>"
                     data-page="<?php echo esc_attr( $i ); ?>"
+                    data-posts-per-page="<?php echo $posts_per_page; ?>"
                 >
                     <?php echo esc_html( $i ); ?>
                 </a>
@@ -214,7 +231,9 @@ function dbgfe_load_posts() {
             <a
                 href="<?php echo esc_url( $paged < $query->max_num_pages ? trailingslashit( $base_url . 'page/' . ( $paged + 1 ) ) : '#' ); ?>"
                 class="page-next <?php echo ( $paged == $query->max_num_pages ) ? 'disabled' : ''; ?>"
-                data-page="<?php echo min( $query->max_num_pages, $paged + 1 ); ?>"
+                style="display: <?php echo ( $paged == $query->max_num_pages ) ? 'none' : 'block'; ?>"
+                data-page="<?php echo min( $query->$max_num_pages, $paged + 1 ); ?>"
+                data-posts-per-page="<?php echo $posts_per_page; ?>"
             >»</a>
 
         </div>
@@ -225,6 +244,8 @@ function dbgfe_load_posts() {
     wp_send_json( [
         'posts'      => $posts_html,
         'pagination' => $pagination_html,
+        'posts_per_page'      => $posts_per_page,
+        'current_url'   => $current_url
     ] );
 }
 

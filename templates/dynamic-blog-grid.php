@@ -4,10 +4,13 @@
 
 <div class="blog-wrapper">
 
+    <?php 
+        if ( 'yes' === $settings['enable_sidebar'] ) {
+    ?>
     <aside class="sidebar" id="sidebar">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
             <h3 style="margin:0">Filter</h3>
-            <button id="clearFilters" style="background:none;border:none;color:#2563eb;font-size:13px;cursor:pointer;padding: 16px 8px;">Clear all</button>
+            <button id="clearFilters" style="background:none;border:none;font-size:13px;cursor:pointer;padding: 16px 8px;" data-postPerPage = <?php echo $settings['posts_per_page'] ; ?>>Clear all</button>
         </div>
 
         <?php
@@ -17,6 +20,11 @@
             'hide_empty' => true,
         ] );
         ?>
+
+        <?php 
+        if ( 'yes' === $settings['enable_category_filter'] ) {
+        ?>
+
         <div class="filter-group">
             <h4><?php esc_html_e( 'Category', 'dbgfe' ); ?></h4>
 
@@ -24,8 +32,10 @@
                 <input 
                     style="width:100%;padding:15px;"
                     type="text"
+                    class="search-category"
                     placeholder="<?php esc_attr_e( 'Search category', 'dbgfe' ); ?>"
                     onkeyup="filterList(this)"
+                    data-postPerPage = <?php echo $settings['posts_per_page'] ; ?>
                 >
             </div>
 
@@ -34,8 +44,9 @@
                     <label>
                         <input 
                             type="checkbox"
-                            class="dbgfe-category-filter"
+                            class="dbgfe-category-filter filter-checkbox"
                             value="<?php echo esc_attr( $category->term_id ); ?>"
+                            data-postperpage = <?php echo $settings['posts_per_page'] ; ?>
                         >
                         <span class="filter-name">
                             <?php echo esc_html( $category->name ); ?>
@@ -48,6 +59,11 @@
             </div>
         </div>
 
+        <?php 
+        }
+        ?>
+        
+
         <?php
         $tags = get_tags( [
             'orderby'    => 'name',
@@ -56,12 +72,17 @@
         ] );
         ?>
 
+        <?php 
+        if ( 'yes' === $settings['enable_tags_filter'] ) {
+        ?>
+
         <div class="filter-group">
             <h4><?php esc_html_e( 'Tags', 'dbgfe' ); ?></h4>
 
             <div class="filter-search">
                 <input 
                     style="width:100%;padding:15px;"
+                    class="search-tag"
                     type="text"
                     placeholder="<?php esc_attr_e( 'Search tag', 'dbgfe' ); ?>"
                     onkeyup="filterList(this)"
@@ -73,8 +94,10 @@
                     <label>
                         <input 
                             type="checkbox"
-                            class="dbgfe-tag-filter"
+                            class="dbgfe-tag-filter filter-checkbox"
                             value="<?php echo esc_attr( $tag->term_id ); ?>"
+                            data-postperpage = <?php echo $settings['posts_per_page'] ; ?>
+
                         >
                         <span class="filter-name">
                             <?php echo esc_html( $tag->name ); ?>
@@ -87,18 +110,29 @@
             </div>
         </div>
 
+        <?php 
+        }
+        ?>
+
     </aside>
+
+    <?php 
+        }
+    ?>
 
     <section class="blog-section">
 
-        <div class="blog-grid" id="blogGrid">
+        <div class="blog-grid" style="grid-template-columns: repeat(<?php echo $settings['columns'];?>, 1fr);" id="blogGrid">
 
             <?php
+
+            $post_per_page = $settings['posts_per_page'] ;
+       
             $paged = get_query_var( 'paged' ) ? get_query_var( 'paged' ) : 1;
 
            $args = [
                 'post_type'      => 'post',
-                'posts_per_page' => 8,
+                'posts_per_page' => $post_per_page,
                 'post_status'    => 'publish',
                 'paged'          => $paged,
             ];
@@ -153,9 +187,11 @@
 
     <!-- Previous button -->
     <a 
-        href="<?php echo esc_url( get_pagenum_link( max(1, $paged - 1) ) ); ?>"
+        href="#"
         class="page-prev <?php echo ( $paged == 1 ) ? 'disabled' : ''; ?>"
+        style="display: <?php echo ( $paged == 1 ) ? 'none' : 'block'; ?>"
         data-page="<?php echo max(1, $paged - 1); ?>"
+        data-posts-per-page="<?php echo $post_per_page; ?>"
         
     >
         «
@@ -167,6 +203,7 @@
             href="<?php echo esc_url( get_pagenum_link( $i ) ); ?>"
             class="page-number <?php echo ( $i == $paged ) ? 'active' : ''; ?>"
             data-page="<?php echo esc_attr( $i ); ?>"
+            data-posts-per-page="<?php echo $post_per_page; ?>"
             
         >
             <?php echo esc_html( $i ); ?>
@@ -178,6 +215,7 @@
         href="<?php echo esc_url( get_pagenum_link( min($query->max_num_pages, $paged + 1) ) ); ?>"
         class="page-next <?php echo ( $paged == $query->max_num_pages ) ? 'disabled' : ''; ?>"
         data-page="<?php echo min($query->max_num_pages, $paged + 1); ?>"
+        data-postsPerPage="<?php echo $post_per_page; ?>"
     >
         »
     </a>
@@ -230,35 +268,41 @@ function updateFilterCount(){
 }
 
 // Clear all filters
-document.getElementById('clearFilters').addEventListener('click',()=>{
+const clearFilters = document.getElementById('clearFilters');
+if(clearFilters){
+    clearFilters.addEventListener('click',()=>{
+  const post_per_page_clear = clearFilters.dataset.postperpage;
   checkboxes.forEach(cb=>cb.checked=false);
   updateFilterCount();
-  dbgfeLoadPosts(1);
+  dbgfeLoadPosts(1,post_per_page_clear);
 });
 
+
+}
+
+
 document.addEventListener('click', function(e) {
+    
     const link = e.target.closest('.pagination a');
     if (!link || link.classList.contains('disabled')) return;
-
     e.preventDefault();
-
     const page = link.dataset.page;
+    const posts_per_page = link.dataset.postsPerPage;
+    
 
-    dbgfeLoadPosts(page); 
-
-    // Update browser URL without reload
-    history.pushState(null, '', link.href);
+    dbgfeLoadPosts(page,posts_per_page); 
 });
 
 document.querySelectorAll(
     '.dbgfe-category-filter, .dbgfe-tag-filter'
 ).forEach(input => {
     input.addEventListener('change', () => {
-        dbgfeLoadPosts(1);
+        const post_per_page_cat_tag = input.dataset.postperpage;
+        dbgfeLoadPosts(1,post_per_page_cat_tag);
     });
 });
 
-function dbgfeLoadPosts(page = 1) {
+function dbgfeLoadPosts(page = 1,posts_per_page = 8) {
 
     const grid = document.getElementById('blogGrid');
     const skeletonLoading = '<div class="blog-card skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text" style="width:70%"></div></div><div class="blog-card skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text" style="width:70%"></div></div><div class="blog-card skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text" style="width:70%"></div></div><div class="blog-card skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text" style="width:70%"></div></div><div class="blog-card skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text" style="width:70%"></div></div><div class="blog-card skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text" style="width:70%"></div></div><div class="blog-card skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text" style="width:70%"></div></div><div class="blog-card skeleton-card"><div class="skeleton skeleton-img"></div><div class="skeleton skeleton-text"></div><div class="skeleton skeleton-text" style="width:70%"></div></div>';
@@ -279,8 +323,10 @@ function dbgfeLoadPosts(page = 1) {
     const params = new URLSearchParams({
         action: 'dbgfe_load_posts',
         page: page,
+        posts_per_page : posts_per_page,
         categories: categories.join(','),
-        tags: tags.join(',')
+        tags: tags.join(','),
+        current_url: window.location.href 
     });
 
     fetch(dbgfe_ajax.ajax_url, {
@@ -295,6 +341,7 @@ function dbgfeLoadPosts(page = 1) {
 
         grid.innerHTML = data.posts;
        
+       
 
         const paginationWrap = document.getElementById('dbgfe-pagination');
         if (paginationWrap) {
@@ -305,31 +352,10 @@ function dbgfeLoadPosts(page = 1) {
                 .insertAdjacentHTML('beforeend', data.pagination);
         }
 
-        // SEO-safe URL update
-        const url = new URL(window.location);
-        url.searchParams.set('paged', page);
-
-        if (categories.length) {
-            url.searchParams.set('categories', categories.join(','));
-        } else {
-            url.searchParams.delete('categories');
-        }
-
-        if (tags.length) {
-            url.searchParams.set('tags', tags.join(','));
-        } else {
-            url.searchParams.delete('tags');
-        }
-
-        history.pushState({}, '', url);
     });
 
 }
 
-window.addEventListener('popstate', () => {
-    const page = new URLSearchParams(location.search).get('paged') || 1;
-    dbgfeLoadPosts(page);
-});
 
 
 </script>

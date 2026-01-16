@@ -61,43 +61,43 @@ class DBGFE_Dynamic_Blog_Grid extends \Elementor\Widget_Base {
         );
 
         // Categories filter
-        $categories = get_terms([
-            'taxonomy' => 'category',
-            'hide_empty' => true,
-        ]);
-        $cats_options = [];
-        foreach ( $categories as $cat ) {
-            $cats_options[ $cat->term_id ] = $cat->name;
-        }
-
         $this->add_control(
-            'categories',
-            [
-                'label' => esc_html__( 'Filter by Categories', 'dbgfe' ),
-                'type' => \Elementor\Controls_Manager::SELECT2,
-                'options' => $cats_options,
-                'multiple' => true,
-            ]
+        'enable_category_filter',
+        [
+            'label'        => esc_html__( 'Enable Category Filter', 'dbgfe' ),
+            'type'         => \Elementor\Controls_Manager::SWITCHER,
+            'label_on'     => esc_html__( 'Yes', 'dbgfe' ),
+            'label_off'    => esc_html__( 'No', 'dbgfe' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+        ]
         );
 
-        // Tags filter
-        $tags = get_terms([
-            'taxonomy' => 'post_tag',
-            'hide_empty' => true,
-        ]);
-        $tags_options = [];
-        foreach ( $tags as $tag ) {
-            $tags_options[ $tag->term_id ] = $tag->name;
-        }
 
+        // Tags filter
         $this->add_control(
-            'tags',
-            [
-                'label' => esc_html__( 'Filter by Tags', 'dbgfe' ),
-                'type' => \Elementor\Controls_Manager::SELECT2,
-                'options' => $tags_options,
-                'multiple' => true,
-            ]
+        'enable_tags_filter',
+        [
+            'label'        => esc_html__( 'Enable Tags Filter', 'dbgfe' ),
+            'type'         => \Elementor\Controls_Manager::SWITCHER,
+            'label_on'     => esc_html__( 'Yes', 'dbgfe' ),
+            'label_off'    => esc_html__( 'No', 'dbgfe' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+        ]
+        );
+
+        // Enable/Disable Sidebar
+        $this->add_control(
+        'enable_sidebar',
+        [
+            'label'        => esc_html__( 'Enable Sidebar', 'dbgfe' ),
+            'type'         => \Elementor\Controls_Manager::SWITCHER,
+            'label_on'     => esc_html__( 'Yes', 'dbgfe' ),
+            'label_off'    => esc_html__( 'No', 'dbgfe' ),
+            'return_value' => 'yes',
+            'default'      => 'yes',
+        ]
         );
 
         $this->end_controls_section();
@@ -129,44 +129,52 @@ class DBGFE_Dynamic_Blog_Grid extends \Elementor\Widget_Base {
                     'size' => 20,
                 ],
                 'selectors' => [
-                    '{{WRAPPER}} .dbgfe-blog-grid' => 'gap: {{SIZE}}{{UNIT}};',
+                    '{{WRAPPER}} .blog-grid' => 'gap: {{SIZE}}{{UNIT}};',
                 ],
             ]
         );
 
         $this->add_control(
-            'title_color',
+            'color_template',
             [
-                'label' => esc_html__( 'Title Color', 'dbgfe' ),
+                'label' => esc_html__( 'Color Template', 'dbgfe' ),
                 'type' => \Elementor\Controls_Manager::COLOR,
                 'selectors' => [
-                    '{{WRAPPER}} .dbgfe-post-title' => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .pagination a.active, {{WRAPPER}} .pagination a:hover' => '
+                    background-color: {{VALUE}};
+                    border-color: {{VALUE}};
+                    ',
+                    '{{WRAPPER}} .read-more'  => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .filter-group input::before'  => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} .mobile-filter-btn'  => 'background-color: {{VALUE}};',
+                    '{{WRAPPER}} #clearFilters'  => 'color: {{VALUE}};',
+                    '{{WRAPPER}} .search-category, {{WRAPPER}} .search-tag,{{WRAPPER}} .filter-checkbox' => '
+                    border-color:{{VALUE}};
+                    ',
+                    
+                    
                 ],
             ]
         );
 
+        $this->add_control(
+            'taxonomy-hover',
+            [
+                'label' => esc_html__( 'Taxonomy Hover', 'dbgfe' ),
+                'type' => \Elementor\Controls_Manager::COLOR,
+                'selectors' => [
+                    '{{WRAPPER}} .filter-group label:hover'  => 'background-color: {{VALUE}};',
+                    
+                    
+                ],
+            ]
+        );
         $this->end_controls_section();
         // Style Tab End
     }
 
     protected function render(): void {
         $settings = $this->get_settings_for_display();
-
-        // Prepare WP_Query args
-        $args = [
-            'post_type' => 'post',
-            'posts_per_page' => $settings['posts_per_page'],
-        ];
-
-        if (!empty($settings['categories'])) {
-            $args['category__in'] = $settings['categories'];
-        }
-
-        if (!empty($settings['tags'])) {
-            $args['tag__in'] = $settings['tags'];
-        }
-
-        $query = new WP_Query($args);
 
         // Include template file
         $template_path = DBGFE_PATH . 'templates/dynamic-blog-grid.php';
@@ -175,14 +183,6 @@ class DBGFE_Dynamic_Blog_Grid extends \Elementor\Widget_Base {
         }
 
         wp_reset_postdata();
-    }
-
-
-    protected function content_template(): void {
-        $template_path = DBGFE_PATH . 'templates/dynamic-blog-grid-editor.php';
-        if ( file_exists( $template_path ) ) {
-            include $template_path;
-        }
     }
 
 }
