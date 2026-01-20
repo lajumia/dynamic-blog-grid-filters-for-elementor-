@@ -14,7 +14,7 @@ msgstr ""
 "Content-Transfer-Encoding: 8bit\n"
 "X-Generator: Loco https://localise.biz/\n"
 "X-Loco-Version: 2.8.1; wp-6.9; php-8.2.12\n"
-"X-Domain: dbgfe"
+"X-Domain: dynamic-blog-grid-filters-for-elementor"
 
 #. Description of the plugin
 msgid ""

@@ -1,12 +1,12 @@
 <?php
 /**
- * Plugin Name: Elementor Dynamic Blog Grid & Filters 
+ * Plugin Name: Dynamic Blog Grid & Filters for Elementor
  * Description: An Elementor addon to create dynamic, filterable blog grids with category & tag filters, pagination, and mobile off-canvas UI.
  * Plugin URI:  https://wpspeedpress.com/dynamic-blog-grid-filters-for-elementor/
  * Version:     1.0.0
  * Author:      Md Laju Miah
  * Author URI:  https://profiles.wordpress.org/devlaju/
- * Text Domain: dbgfe
+ * Text Domain: dynamic-blog-grid-filters-for-elementor
  * Domain Path: /languages
  * License:     GPL v2 or later
  * License URI: https://www.gnu.org/licenses/gpl-2.0.html
@@ -40,7 +40,7 @@ function dbgfe_admin_notice_missing_elementor() {
         return;
     }
     echo '<div class="notice notice-error"><p>';
-    echo esc_html__( 'Dynamic Blog Grid & Filters requires Elementor to be installed and activated.', 'dbgfe' );
+    echo esc_html__( 'Dynamic Blog Grid & Filters requires Elementor to be installed and activated.', 'dynamic-blog-grid-filters-for-elementor' );
     echo '</p></div>';
 }
 
@@ -53,9 +53,6 @@ function dbgfe_init_plugin() {
         add_action( 'admin_notices', 'dbgfe_admin_notice_missing_elementor' );
         return;
     }
-
-    // Load text domain
-    load_plugin_textdomain( 'dbgfe', false, dirname( plugin_basename( __FILE__ ) ) . '/languages' );
 
     // Register assets
     add_action( 'wp_enqueue_scripts', 'dbgfe_register_assets' );
@@ -88,7 +85,8 @@ function dbgfe_register_assets() {
         'dbgfe-script',
         'dbgfe_ajax',
         [
-            'ajax_url' => admin_url( 'admin-ajax.php' )
+            'ajax_url' => admin_url( 'admin-ajax.php' ),
+            'nonce'    => wp_create_nonce( 'dbgfe_nonce' ),
         ]
     );
 }
@@ -110,6 +108,18 @@ add_action( 'wp_ajax_nopriv_dbgfe_load_posts', 'dbgfe_load_posts' );
 
 function dbgfe_load_posts() {
 
+    
+    if (
+        ! isset( $_POST['nonce'] ) ||
+        ! wp_verify_nonce(
+            sanitize_text_field( wp_unslash( $_POST['nonce'] ) ),
+            'dbgfe_nonce'
+        )
+    ) {
+        wp_send_json_error( 'Invalid nonce.' );
+        wp_die();
+    }
+
     $paged = isset( $_POST['page'] ) ? absint( $_POST['page'] ) : 1;
     $posts_per_page = isset( $_POST['posts_per_page'] ) ? absint( $_POST['posts_per_page'] ) : 8;
 
@@ -123,19 +133,31 @@ function dbgfe_load_posts() {
 
     // Categories filter (multiple)
     if ( ! empty( $_POST['categories'] ) ) {
+
+        $categories = sanitize_text_field(
+            wp_unslash( $_POST['categories'] )
+        );
+
         $args['category__in'] = array_map(
             'absint',
-            explode( ',', sanitize_text_field( $_POST['categories'] ) )
+            explode( ',', $categories )
         );
     }
 
+
     // Tags filter (multiple)
     if ( ! empty( $_POST['tags'] ) ) {
+
+        $tags = sanitize_text_field(
+            wp_unslash( $_POST['tags'] )
+        );
+
         $args['tag__in'] = array_map(
             'absint',
-            explode( ',', sanitize_text_field( $_POST['tags'] ) )
+            explode( ',', $tags )
         );
     }
+
 
     $query = new WP_Query( $args );
 
@@ -154,7 +176,7 @@ function dbgfe_load_posts() {
                             'style' => 'width:100%; height:100px; object-fit:cover;',
                         ] ); ?>
                     <?php else : ?>
-                        <img src="<?php echo esc_url( DBGFE_URL . 'assets/img/image-not-found.jpg' ); ?>" alt="<?php esc_attr_e( 'Image not found', 'dbgfe' ); ?>">
+                        <img src="<?php echo esc_url( DBGFE_URL . 'assets/img/image-not-found.jpg' ); ?>" alt="<?php esc_attr_e( 'Image not found', 'dynamic-blog-grid-filters-for-elementor' ); ?>">
                     <?php endif; ?>
                 </a>
 
@@ -162,13 +184,13 @@ function dbgfe_load_posts() {
                     <h3><?php echo esc_html( get_the_title() ); ?></h3>
                     <p><?php echo esc_html( wp_trim_words( get_the_excerpt(), 3 ) ); ?></p>
                     <a href="<?php echo esc_url( get_the_permalink() ); ?>" class="read-more">
-                        <?php esc_html_e( 'Read More →', 'dbgfe' ); ?>
+                        <?php esc_html_e( 'Read More →', 'dynamic-blog-grid-filters-for-elementor' ); ?>
                     </a>
                 </div>
             </div>
         <?php endwhile;
     else :
-        echo '<p>' . esc_html__( 'No posts found.', 'dbgfe' ) . '</p>';
+        echo '<p>' . esc_html__( 'No posts found.', 'dynamic-blog-grid-filters-for-elementor' ) . '</p>';
     endif;
 
     wp_reset_postdata();
@@ -179,28 +201,22 @@ function dbgfe_load_posts() {
      * PAGINATION HTML
      * -------------------- */
 
-    // $current_url = ! empty( $_POST['current_url'] )
-    //     ? esc_url_raw( $_POST['current_url'] )
-    //     : home_url( '/' );
+    // Get and sanitize current_url WITHOUT touching $_POST directly
+    $current_url = filter_input( INPUT_POST, 'current_url', FILTER_SANITIZE_URL );
 
-    // $base_url = trailingslashit( preg_replace( '#/page/\d+/?#', '', $current_url ) );
+    if ( empty( $current_url ) ) {
+        $current_url = home_url( '/' );
+    }
 
-    // Get the current URL safely
-    $current_url = ! empty( $_POST['current_url'] ) 
-        ? wp_unslash( $_POST['current_url'] ) // Unsplash input
-        : home_url( '/' );
-
-    // Sanitize URL
-    $current_url = esc_url_raw( $current_url );
-
-    // Remove /page/{number}/ as before
+    // Remove /page/{number}/
     $current_url = preg_replace( '#/page/\d+/?#', '', $current_url );
 
-    // Remove trailing # if it exists
+    // Remove trailing #
     $current_url = rtrim( $current_url, '#' );
 
-    // Add trailing slash at the end
-    $base_url = trailingslashit( $current_url );
+    // Ensure trailing slash
+    $base_url = trailingslashit( esc_url_raw( $current_url ) );
+
 
 
     ob_start();
@@ -221,7 +237,7 @@ function dbgfe_load_posts() {
             <a href="<?php echo esc_url( $prev_href ); ?>"
                class="page-prev <?php echo ( $paged <= 1 ) ? 'disabled' : ''; ?>"
                style="display: <?php echo ( $paged == 1 ) ? 'none' : 'block'; ?>"
-               data-page="<?php echo max( 1, $paged - 1 ); ?>"
+               data-page="<?php echo esc_attr(max( 1, $paged - 1 )); ?>"
                data-posts-per-page="<?php echo esc_attr( $posts_per_page ); ?>">«</a>
 
             <!-- Numbers -->
@@ -238,7 +254,7 @@ function dbgfe_load_posts() {
             <a href="<?php echo esc_url( $paged < $query->max_num_pages ? trailingslashit( $base_url . 'page/' . ( $paged + 1 ) ) : '#' ); ?>"
                class="page-next <?php echo ( $paged == $query->max_num_pages ) ? 'disabled' : ''; ?>"
                style="display: <?php echo ( $paged == $query->max_num_pages ) ? 'none' : 'block'; ?>"
-               data-page="<?php echo min( $query->max_num_pages, $paged + 1 ); ?>"
+               data-page="<?php echo esc_attr(min( $query->max_num_pages, $paged + 1 )); ?>"
                data-posts-per-page="<?php echo esc_attr( $posts_per_page ); ?>">»</a>
         </div>
     <?php endif;
@@ -265,8 +281,8 @@ add_filter( 'plugin_row_meta', function ( $links, $file ) {
     }
 
     $row_meta = [
-        'docs'   => '<a href="https://wpspeedpress.com/dynamic-blog-grid-filters-for-elementor/" target="_blank">' . esc_html__( 'Docs & FAQs', 'dbgfe' ) . '</a>',
-        'videos' => '<a href="https://www.youtube.com/@speedpress_for_wp" target="_blank">' . esc_html__( 'Video Tutorials', 'dbgfe' ) . '</a>',
+        'docs'   => '<a href="https://wpspeedpress.com/dynamic-blog-grid-filters-for-elementor/" target="_blank">' . esc_html__( 'Docs & FAQs', 'dynamic-blog-grid-filters-for-elementor' ) . '</a>',
+        'videos' => '<a href="https://www.youtube.com/@speedpress_for_wp" target="_blank">' . esc_html__( 'Video Tutorials', 'dynamic-blog-grid-filters-for-elementor' ) . '</a>',
     ];
 
     return array_merge( $links, $row_meta );

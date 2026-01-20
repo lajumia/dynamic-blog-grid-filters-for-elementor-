@@ -10,7 +10,7 @@ class DBGFE_Dynamic_Blog_Grid extends \Elementor\Widget_Base {
     }
 
     public function get_title(): string {
-        return esc_html__( 'Dynamic Blog Grid', 'dbgfe' );
+        return esc_html__( 'Dynamic Blog Grid', 'dynamic-blog-grid-filters-for-elementor' );
     }
 
     public function get_icon(): string {
@@ -31,7 +31,7 @@ class DBGFE_Dynamic_Blog_Grid extends \Elementor\Widget_Base {
         $this->start_controls_section(
             'section_content',
             [
-                'label' => esc_html__( 'Content', 'dbgfe' ),
+                'label' => esc_html__( 'Content', 'dynamic-blog-grid-filters-for-elementor' ),
                 'tab' => \Elementor\Controls_Manager::TAB_CONTENT,
             ]
         );
@@ -40,7 +40,7 @@ class DBGFE_Dynamic_Blog_Grid extends \Elementor\Widget_Base {
         $this->add_control(
             'posts_per_page',
             [
-                'label' => esc_html__( 'Posts Per Page', 'dbgfe' ),
+                'label' => esc_html__( 'Posts Per Page', 'dynamic-blog-grid-filters-for-elementor' ),
                 'type' => \Elementor\Controls_Manager::NUMBER,
                 'default' => 8,
                 'min' => 1,
@@ -52,7 +52,7 @@ class DBGFE_Dynamic_Blog_Grid extends \Elementor\Widget_Base {
         $this->add_control(
             'columns',
             [
-                'label' => esc_html__( 'Columns', 'dbgfe' ),
+                'label' => esc_html__( 'Columns', 'dynamic-blog-grid-filters-for-elementor' ),
                 'type' => \Elementor\Controls_Manager::SELECT,
                 'options' => [
                     '1' => '1',
@@ -68,10 +68,10 @@ class DBGFE_Dynamic_Blog_Grid extends \Elementor\Widget_Base {
         $this->add_control(
             'enable_category_filter',
             [
-                'label'        => esc_html__( 'Enable Category Filter', 'dbgfe' ),
+                'label'        => esc_html__( 'Enable Category Filter', 'dynamic-blog-grid-filters-for-elementor' ),
                 'type'         => \Elementor\Controls_Manager::SWITCHER,
-                'label_on'     => esc_html__( 'Yes', 'dbgfe' ),
-                'label_off'    => esc_html__( 'No', 'dbgfe' ),
+                'label_on'     => esc_html__( 'Yes', 'dynamic-blog-grid-filters-for-elementor' ),
+                'label_off'    => esc_html__( 'No', 'dynamic-blog-grid-filters-for-elementor' ),
                 'return_value' => 'yes',
                 'default'      => 'yes',
             ]
@@ -81,10 +81,10 @@ class DBGFE_Dynamic_Blog_Grid extends \Elementor\Widget_Base {
         $this->add_control(
             'enable_tags_filter',
             [
-                'label'        => esc_html__( 'Enable Tags Filter', 'dbgfe' ),
+                'label'        => esc_html__( 'Enable Tags Filter', 'dynamic-blog-grid-filters-for-elementor' ),
                 'type'         => \Elementor\Controls_Manager::SWITCHER,
-                'label_on'     => esc_html__( 'Yes', 'dbgfe' ),
-                'label_off'    => esc_html__( 'No', 'dbgfe' ),
+                'label_on'     => esc_html__( 'Yes', 'dynamic-blog-grid-filters-for-elementor' ),
+                'label_off'    => esc_html__( 'No', 'dynamic-blog-grid-filters-for-elementor' ),
                 'return_value' => 'yes',
                 'default'      => 'yes',
             ]
@@ -94,10 +94,10 @@ class DBGFE_Dynamic_Blog_Grid extends \Elementor\Widget_Base {
         $this->add_control(
             'enable_sidebar',
             [
-                'label'        => esc_html__( 'Enable Sidebar', 'dbgfe' ),
+                'label'        => esc_html__( 'Enable Sidebar', 'dynamic-blog-grid-filters-for-elementor' ),
                 'type'         => \Elementor\Controls_Manager::SWITCHER,
-                'label_on'     => esc_html__( 'Yes', 'dbgfe' ),
-                'label_off'    => esc_html__( 'No', 'dbgfe' ),
+                'label_on'     => esc_html__( 'Yes', 'dynamic-blog-grid-filters-for-elementor' ),
+                'label_off'    => esc_html__( 'No', 'dynamic-blog-grid-filters-for-elementor' ),
                 'return_value' => 'yes',
                 'default'      => 'yes',
             ]
@@ -109,7 +109,7 @@ class DBGFE_Dynamic_Blog_Grid extends \Elementor\Widget_Base {
         $this->start_controls_section(
             'section_style',
             [
-                'label' => esc_html__( 'Grid', 'dbgfe' ),
+                'label' => esc_html__( 'Grid', 'dynamic-blog-grid-filters-for-elementor' ),
                 'tab' => \Elementor\Controls_Manager::TAB_STYLE,
             ]
         );
@@ -118,7 +118,7 @@ class DBGFE_Dynamic_Blog_Grid extends \Elementor\Widget_Base {
         $this->add_control(
             'grid_gap',
             [
-                'label' => esc_html__( 'Grid Gap (px)', 'dbgfe' ),
+                'label' => esc_html__( 'Grid Gap (px)', 'dynamic-blog-grid-filters-for-elementor' ),
                 'type' => \Elementor\Controls_Manager::SLIDER,
                 'size_units' => [ 'px' ],
                 'range' => [
@@ -141,7 +141,7 @@ class DBGFE_Dynamic_Blog_Grid extends \Elementor\Widget_Base {
         $this->add_control(
             'color_template',
             [
-                'label' => esc_html__( 'Color Template', 'dbgfe' ),
+                'label' => esc_html__( 'Color Template', 'dynamic-blog-grid-filters-for-elementor' ),
                 'type' => \Elementor\Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .pagination a.active, {{WRAPPER}} .pagination a:hover' => 'background-color: {{VALUE}}; border-color: {{VALUE}};',
@@ -158,7 +158,7 @@ class DBGFE_Dynamic_Blog_Grid extends \Elementor\Widget_Base {
         $this->add_control(
             'taxonomy_hover',
             [
-                'label' => esc_html__( 'Taxonomy Hover', 'dbgfe' ),
+                'label' => esc_html__( 'Taxonomy Hover', 'dynamic-blog-grid-filters-for-elementor' ),
                 'type' => \Elementor\Controls_Manager::COLOR,
                 'selectors' => [
                     '{{WRAPPER}} .filter-group label:hover' => 'background-color: {{VALUE}};',

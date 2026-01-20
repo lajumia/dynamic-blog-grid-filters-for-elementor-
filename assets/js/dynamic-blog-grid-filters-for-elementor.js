@@ -94,7 +94,8 @@ function dbgfeLoadPosts(page = 1,posts_per_page = 8) {
         posts_per_page : posts_per_page,
         categories: categories.join(','),
         tags: tags.join(','),
-        current_url: window.location.href 
+        current_url: window.location.href,
+        nonce: dbgfe_ajax.nonce
     });
 
     fetch(dbgfe_ajax.ajax_url, {

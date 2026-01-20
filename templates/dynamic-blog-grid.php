@@ -1,3 +1,9 @@
+<?php // Exit if accessed directly
+if ( ! defined( 'ABSPATH' ) ) {
+    exit;
+}
+?>
+
 <button class="mobile-filter-btn" onclick="toggleFilter()">☰ <span class="badge" id="filterCount">0</span></button>
 
 <div class="overlay" id="overlay" onclick="closeFilter()"></div>
@@ -14,7 +20,7 @@
         </div>
 
         <?php
-        $categories = get_categories( [
+        $dbgfe_categories = get_categories( [
             'orderby'    => 'name',
             'order'      => 'ASC',
             'hide_empty' => true,
@@ -26,33 +32,33 @@
         ?>
 
         <div class="filter-group">
-            <h4><?php esc_html_e( 'Category', 'dbgfe' ); ?></h4>
+            <h4><?php esc_html_e( 'Category', 'dynamic-blog-grid-filters-for-elementor' ); ?></h4>
 
             <div class="filter-search">
                 <input 
                     style="width:100%;padding:15px;"
                     type="text"
                     class="search-category"
-                    placeholder="<?php esc_attr_e( 'Search category', 'dbgfe' ); ?>"
+                    placeholder="<?php esc_attr_e( 'Search category', 'dynamic-blog-grid-filters-for-elementor' ); ?>"
                     onkeyup="filterList(this)"
                     data-postPerPage = <?php echo esc_attr( $settings['posts_per_page'] ); ?>
                 >
             </div>
 
             <div class="filter-list">
-                <?php foreach ( $categories as $category ) : ?>
+                <?php foreach ( $dbgfe_categories as $dbgfe_category ) : ?>
                     <label>
                         <input 
                             type="checkbox"
                             class="dbgfe-category-filter filter-checkbox"
-                            value="<?php echo esc_attr( $category->term_id ); ?>"
+                            value="<?php echo esc_attr( $dbgfe_category->term_id ); ?>"
                             data-postperpage = <?php echo esc_attr( $settings['posts_per_page'] ); ?>
                         >
                         <span class="filter-name">
-                            <?php echo esc_html( $category->name ); ?>
+                            <?php echo esc_html( $dbgfe_category->name ); ?>
                         </span>
                         <span class="filter-count" style="margin-left:auto;color:#999;font-size:12px">
-                            <?php echo esc_html( $category->count ); ?>
+                            <?php echo esc_html( $dbgfe_category->count ); ?>
                         </span>
                     </label>
                 <?php endforeach; ?>
@@ -65,7 +71,7 @@
         
 
         <?php
-        $tags = get_tags( [
+        $dbgfe_tags = get_tags( [
             'orderby'    => 'name',
             'order'      => 'ASC',
             'hide_empty' => true,
@@ -77,34 +83,34 @@
         ?>
 
         <div class="filter-group">
-            <h4><?php esc_html_e( 'Tags', 'dbgfe' ); ?></h4>
+            <h4><?php esc_html_e( 'Tags', 'dynamic-blog-grid-filters-for-elementor' ); ?></h4>
 
             <div class="filter-search">
                 <input 
                     style="width:100%;padding:15px;"
                     class="search-tag"
                     type="text"
-                    placeholder="<?php esc_attr_e( 'Search tag', 'dbgfe' ); ?>"
+                    placeholder="<?php esc_attr_e( 'Search tag', 'dynamic-blog-grid-filters-for-elementor' ); ?>"
                     onkeyup="filterList(this)"
                 >
             </div>
 
             <div class="filter-list">
-                <?php foreach ( $tags as $tag ) : ?>
+                <?php foreach ( $dbgfe_tags as $dbgfe_tag ) : ?>
                     <label>
                         <input 
                             type="checkbox"
                             class="dbgfe-tag-filter filter-checkbox"
-                            value="<?php echo esc_attr( $tag->term_id ); ?>"
+                            value="<?php echo esc_attr( $dbgfe_tag->term_id ); ?>"
                            data-postperpage="<?php echo esc_attr( absint( $settings['posts_per_page'] ) ); ?>"
 
 
                         >
                         <span class="filter-name">
-                            <?php echo esc_html( $tag->name ); ?>
+                            <?php echo esc_html( $dbgfe_tag->name ); ?>
                         </span>
                         <span class="filter-count" style="margin-left:auto;color:#999;font-size:12px">
-                            <?php echo esc_html( $tag->count ); ?>
+                            <?php echo esc_html( $dbgfe_tag->count ); ?>
                         </span>
                     </label>
                 <?php endforeach; ?>
@@ -127,22 +133,22 @@
 
             <?php
 
-            $post_per_page = $settings['posts_per_page'] ;
+            $dbgfe_post_per_page = $settings['posts_per_page'] ;
        
             $paged = get_query_var( 'paged' ) ? get_query_var( 'paged' ) : 1;
 
-           $args = [
+           $dbgfe_args = [
                 'post_type'      => 'post',
-                'posts_per_page' => $post_per_page,
+                'posts_per_page' => $dbgfe_post_per_page,
                 'post_status'    => 'publish',
                 'paged'          => $paged,
             ];
 
 
-            $query = new WP_Query( $args );
+            $dbgfe__query = new WP_Query( $dbgfe_args );
 
-            if ( $query->have_posts() ) :
-                while ( $query->have_posts() ) : $query->the_post();
+            if ( $dbgfe__query->have_posts() ) :
+                while ( $dbgfe__query->have_posts() ) : $dbgfe__query->the_post();
             ?>
             <div class="blog-card">
             
@@ -153,7 +159,7 @@
                                 'style' => 'width:100%; height:100px; object-fit:cover;',
                             ] ); ?>
                     <?php else : ?>
-                        <img src="<?php echo esc_url( DBGFE_URL . 'assets/img/image-not-found.jpg' ); ?>" alt="<?php esc_attr_e( 'Image not found', 'dbgfe' ); ?>">
+                        <img src="<?php echo esc_url( DBGFE_URL . 'assets/img/image-not-found.jpg' ); ?>" alt="<?php esc_attr_e( 'Image not found', 'dynamic-blog-grid-filters-for-elementor' ); ?>">
                     <?php endif; ?>
                 </a>
 
@@ -161,12 +167,12 @@
                     <h3><?php the_title(); ?></h3>
 
                     <p>
-                        <?php echo wp_trim_words( get_the_excerpt(), 3 ); ?>
+                        <?php echo esc_html( wp_trim_words( get_the_excerpt(), 3 ) ); ?>
                     </p>
 
                     <p>
                     <a href="<?php the_permalink(); ?>" class="read-more">
-                        <?php esc_html_e( 'Read More →', 'dbgfe' ); ?>
+                        <?php esc_html_e( 'Read More →', 'dynamic-blog-grid-filters-for-elementor' ); ?>
                     </a>
                 </div>
 
@@ -177,13 +183,13 @@
             wp_reset_postdata();
         else :
         ?>
-            <p><?php esc_html_e( 'No posts found.', 'dbgfe' ); ?></p>
+            <p><?php esc_html_e( 'No posts found.', 'dynamic-blog-grid-filters-for-elementor' ); ?></p>
         <?php endif; ?>
 
         </div>
 
 
-<?php if ( $query->max_num_pages > 1 ) : ?>
+<?php if ( $dbgfe__query->max_num_pages > 1 ) : ?>
 <div class="pagination" id="dbgfe-pagination">
 
     <!-- Previous button -->
@@ -192,30 +198,30 @@
         class="page-prev <?php echo ( $paged == 1 ) ? 'disabled' : ''; ?>"
         style="display: <?php echo ( $paged == 1 ) ? 'none' : 'block'; ?>"
         data-page="<?php echo esc_attr(max(1, $paged - 1)); ?>"
-        data-posts-per-page="<?php echo esc_attr($post_per_page); ?>"
+        data-posts-per-page="<?php echo esc_attr($dbgfe_post_per_page); ?>"
         
     >
         «
     </a>
 
     <!-- Page numbers -->
-    <?php for ( $i = 1; $i <= $query->max_num_pages; $i++ ) : ?>
+    <?php for ( $dbgfe_i = 1; $dbgfe_i <= $dbgfe__query->max_num_pages; $dbgfe_i++ ) : ?>
         <a 
-            href="<?php echo esc_url( get_pagenum_link( $i ) ); ?>"
-            class="page-number <?php echo ( $i == $paged ) ? 'active' : ''; ?>"
-            data-page="<?php echo esc_attr( $i ); ?>"
-            data-posts-per-page="<?php echo esc_attr($post_per_page); ?>"
+            href="<?php echo esc_url( get_pagenum_link( $dbgfe_i ) ); ?>"
+            class="page-number <?php echo ( $dbgfe_i == $paged ) ? 'active' : ''; ?>"
+            data-page="<?php echo esc_attr( $dbgfe_i ); ?>"
+            data-posts-per-page="<?php echo esc_attr($dbgfe_post_per_page); ?>"
             
         >
-            <?php echo esc_html( $i ); ?>
+            <?php echo esc_html( $dbgfe_i ); ?>
         </a>
     <?php endfor; ?>
 
     <!-- Next button -->
     <a 
-        href="<?php echo esc_url( get_pagenum_link( min($query->max_num_pages, $paged + 1) ) ); ?>"
-        class="page-next <?php echo ( $paged == $query->max_num_pages ) ? 'disabled' : ''; ?>"
-        data-page="<?php echo esc_attr(min($query->max_num_pages, $paged + 1)); ?>"
+        href="<?php echo esc_url( get_pagenum_link( min($dbgfe__query->max_num_pages, $paged + 1) ) ); ?>"
+        class="page-next <?php echo ( $paged == $dbgfe__query->max_num_pages ) ? 'disabled' : ''; ?>"
+        data-page="<?php echo esc_attr(min($dbgfe__query->max_num_pages, $paged + 1)); ?>"
         data-postsPerPage="<?php echo esc_attr($post_per_page); ?>"
     >
         »
