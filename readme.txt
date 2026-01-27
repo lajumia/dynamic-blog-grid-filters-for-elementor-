@@ -1,5 +1,5 @@
 === Dynamic Blog Grid & Filters for Elementor ===
-Contributors: Md Laju Miah
+Contributors: devlaju
 Tags: elementor, elementor widget, blog grid, post grid, ajax filter
 Requires at least: 6.0
 Tested up to: 6.9
@@ -95,7 +95,6 @@ Initial release.
 
 == Roadmap ==
 
-- AJAX filtering
 - Custom post type support
 - Advanced pagination
 - URL-based filters
